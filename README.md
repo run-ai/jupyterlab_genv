@@ -81,6 +81,11 @@ And add:
 }
 ```
 
+#### List all running kernels
+```
+ls -la $(jupyter --runtime-dir)/kernel-*.json
+```
+
 ### Development install
 
 Note: You will need NodeJS to build the extension package.
@@ -110,6 +115,8 @@ jlpm watch
 # Run JupyterLab in another terminal
 jupyter lab
 ```
+
+> You can pass `--no-browser` to the `jupyter lab` command
 
 With the watch command running, every saved change will immediately be built locally and available in your running JupyterLab. Refresh JupyterLab to load the change in your browser (you may need to wait several seconds for the extension to be rebuilt).
 
