@@ -6,7 +6,10 @@ import {
 import {
   ICommandPalette,
   MainAreaWidget,
-  ToolbarButton
+  ToolbarButton,
+  Dialog,
+  showDialog,
+  ReactWidget
 } from '@jupyterlab/apputils';
 
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -14,6 +17,8 @@ import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 
 import { IDisposable } from '@lumino/disposable';
 import { Widget } from '@lumino/widgets';
+
+import React from 'react';
 
 import { requestAPI } from './handler';
 
@@ -27,17 +32,34 @@ export class ButtonExtension
     // Create the toolbar button
     const mybutton = new ToolbarButton({
       label: 'GPUs',
-      onClick: () => {
-        requestAPI<any>('set_indices')
-          .then(data => {
-            console.log(data);
-            alert('GPU indices set. Restart the kernel.');
-          })
-          .catch(reason => {
-            console.error(
-              `The jupyterlab_genv server extension appears to be missing.\n${reason}`
-            );
+      onClick: async () => {
+        if (panel.sessionContext.session?.kernel) {
+          await showDialog({
+            title: 'Configure Your GPU Environment',
+            body: ReactWidget.create(
+              <>
+                Open a terminal and run the following command:
+                <br />
+                <br />
+                <code>
+                  genv activate --id kernel-
+                  {panel.sessionContext.session.kernel.id}
+                </code>
+                <br />
+                <i>IMPORTANT:</i>
+                You will need to restart the kernel for changes form the
+                terminal to take effect.
+              </>
+            ),
+            buttons: [Dialog.okButton()]
           });
+        } else {
+          await showDialog({
+            title: 'No Kernel',
+            body: 'You need a kernel in order to run in a GPU environment.',
+            buttons: [Dialog.warnButton()]
+          });
+        }
       }
     });
 

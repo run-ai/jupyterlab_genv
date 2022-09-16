@@ -4,8 +4,6 @@ from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 import tornado
 
-from .genv_provisioner import set_indices
-
 class RouteHandler(APIHandler):
     # The following decorator should be present on all verb methods (head, get, post,
     # patch, put, delete, options) to ensure only authorized user can request the
@@ -16,14 +14,6 @@ class RouteHandler(APIHandler):
             "data": "This is /jupyterlab-genv/get_example endpoint!"
         }))
 
-class SetIndicesHandler(APIHandler):
-    @tornado.web.authenticated
-    def get(self):
-        set_indices([1, 3, 5])
-        self.finish(json.dumps({
-            "data": f"This is /jupyterlab-genv/set_indices endpoint!"
-        }))
-
 def setup_handlers(web_app):
     host_pattern = ".*$"
 
@@ -32,7 +22,6 @@ def setup_handlers(web_app):
 
     handlers = [
         (url("get_example"), RouteHandler),
-        (url("set_indices"), SetIndicesHandler),
     ]
 
     web_app.add_handlers(host_pattern, handlers)
