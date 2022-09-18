@@ -16,7 +16,6 @@ import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 
 import { IDisposable } from '@lumino/disposable';
-import { Widget } from '@lumino/widgets';
 
 import React from 'react';
 
@@ -32,6 +31,7 @@ export class ButtonExtension
     // Create the toolbar button
     const mybutton = new ToolbarButton({
       label: 'GPUs',
+      tooltip: 'Configure this GPU environment',
       onClick: async () => {
         if (panel.sessionContext.session?.kernel) {
           await showDialog({
@@ -72,56 +72,80 @@ export class ButtonExtension
   }
 }
 
-/**
- * Initialization data for the jupyterlab_genv extension.
- */
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupyterlab_genv:plugin',
   autoStart: true,
   requires: [ICommandPalette],
-  activate: (app: JupyterFrontEnd, palette: ICommandPalette) => {
-    console.log('JupyterLab extension jupyterlab_genv is activated!');
+  activate: async (app: JupyterFrontEnd, palette: ICommandPalette) => {
+    app.docRegistry.addWidgetExtension('Notebook', new ButtonExtension());
 
-    requestAPI<any>('get_example')
-      .then(data => {
-        console.log(data);
-      })
-      .catch(reason => {
-        console.error(
-          `The jupyterlab_genv server extension appears to be missing.\n${reason}`
-        );
-      });
+    const devicesInfos = await requestAPI<any>('devices');
+    const devicesWidget = new MainAreaWidget({
+      content: ReactWidget.create(
+        <>
+          {devicesInfos.map((device: any, i: number) => (
+            <div>
+              GPU {i}:{' '}
+              {device['eid'] === '' ? (
+                <span style={{ color: 'green' }}>available</span>
+              ) : (
+                <span>used by enviornment {device['eid']}</span>
+              )}
+            </div>
+          ))}
+        </>
+      )
+    });
 
-    // Create a blank content widget inside of a MainAreaWidget
-    const your_button = new ButtonExtension();
-    app.docRegistry.addWidgetExtension('Notebook', your_button);
+    devicesWidget.id = 'jupyterlab_genv.devices';
+    devicesWidget.title.label = 'GPUs: Devices';
+    devicesWidget.title.closable = true;
 
-    const content = new Widget();
-    const widget = new MainAreaWidget({ content });
-    widget.id = 'genv-jupyterlab';
-    widget.title.label = 'GPUs';
-    widget.title.closable = true;
-
-    const p = document.createElement('p');
-    content.node.appendChild(p);
-    p.innerText = 'Hello from genv extension';
-
-    // Add an application command
-    const command = 'genv:open';
-    app.commands.addCommand(command, {
-      label: 'GPUs: Open Widget',
+    const devicesCommand = 'jupyterlab_genv.devices.open';
+    app.commands.addCommand(devicesCommand, {
+      label: 'GPUs: Show Devices',
       execute: () => {
-        if (!widget.isAttached) {
-          // Attach the widget to the main work area if it's not there
-          app.shell.add(widget, 'main');
+        if (!devicesWidget.isAttached) {
+          app.shell.add(devicesWidget, 'main');
         }
-        // Activate the widget
-        app.shell.activateById(widget.id);
+
+        app.shell.activateById(devicesWidget.id);
       }
     });
 
-    // Add the command to the palette.
-    palette.addItem({ command, category: 'GPUs' });
+    palette.addItem({ command: devicesCommand, category: 'GPUs' });
+
+    const envsInfos = await requestAPI<any>('envs');
+    const envsWidget = new MainAreaWidget({
+      content: ReactWidget.create(
+        <>
+          {envsInfos.map((env: any) => (
+            <div>
+              {`${env['eid']} ${env['user']}`}
+              {env['name'] !== '' ? ` ${env['name']}` : null}
+            </div>
+          ))}
+        </>
+      )
+    });
+
+    envsWidget.id = 'jupyterlab_genv.envs';
+    envsWidget.title.label = 'GPUs: Environments';
+    envsWidget.title.closable = true;
+
+    const envsCommand = 'jupyterlab_genv.envs.open';
+    app.commands.addCommand(envsCommand, {
+      label: 'GPUs: Show Environments',
+      execute: () => {
+        if (!envsWidget.isAttached) {
+          app.shell.add(envsWidget, 'main');
+        }
+
+        app.shell.activateById(envsWidget.id);
+      }
+    });
+
+    palette.addItem({ command: envsCommand, category: 'GPUs' });
   }
 };
 

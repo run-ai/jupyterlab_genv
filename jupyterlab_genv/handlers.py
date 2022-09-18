@@ -4,15 +4,17 @@ from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 import tornado
 
-class RouteHandler(APIHandler):
-    # The following decorator should be present on all verb methods (head, get, post,
-    # patch, put, delete, options) to ensure only authorized user can request the
-    # Jupyter server
+from . import genv
+
+class DevicesHandler(APIHandler):
     @tornado.web.authenticated
-    def get(self):
-        self.finish(json.dumps({
-            "data": "This is /jupyterlab-genv/get_example endpoint!"
-        }))
+    async def get(self):
+        self.finish(json.dumps(await genv.devices.ps()))
+
+class EnvsHandler(APIHandler):
+    @tornado.web.authenticated
+    async def get(self):
+        self.finish(json.dumps(await genv.envs.ps()))
 
 def setup_handlers(web_app):
     host_pattern = ".*$"
@@ -21,7 +23,8 @@ def setup_handlers(web_app):
     url = lambda uri: url_path_join(base_url, "jupyterlab-genv", uri)
 
     handlers = [
-        (url("get_example"), RouteHandler),
+        (url("devices"), DevicesHandler),
+        (url("envs"), EnvsHandler),
     ]
 
     web_app.add_handlers(host_pattern, handlers)
