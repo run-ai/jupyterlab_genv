@@ -12,6 +12,8 @@ import {
   ReactWidget
 } from '@jupyterlab/apputils';
 
+import { ITerminal } from '@jupyterlab/terminal';
+
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 
@@ -24,6 +26,10 @@ import { requestAPI } from './handler';
 export class ButtonExtension
   implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel>
 {
+  constructor(app: JupyterFrontEnd) {
+    this._app = app;
+  }
+
   createNew(
     panel: NotebookPanel,
     _context: DocumentRegistry.IContext<INotebookModel>
@@ -37,7 +43,7 @@ export class ButtonExtension
           const spec = await panel.sessionContext.session.kernel.spec;
 
           if (spec?.name.endsWith('-genv')) {
-            await showDialog({
+            const result = await showDialog({
               title: 'Configure Your GPU Environment',
               body: ReactWidget.create(
                 <>
@@ -54,8 +60,37 @@ export class ButtonExtension
                   terminal to take effect.
                 </>
               ),
-              buttons: [Dialog.okButton()]
+              buttons: [
+                Dialog.cancelButton({ label: 'Later' }),
+                Dialog.okButton({
+                  label: 'Open a terminal',
+                  accept: true
+                })
+              ]
             });
+
+            if (result.button.accept) {
+              // NOTE(raz): the terminal is returned only when it's created in the first time.
+              //    this means that we can't send commands to the terminal if it's already running.
+              //    we should consider either creating a terminal per kernel or fixing this.
+              //    we tried opening a terminal per kernel but it seems like terminal names can't
+              //    be long enough to contain a kernel identifier.
+              //    here's a reference:
+              //    https://github.com/jupyterlab/jupyterlab/blob/v3.4.7/packages/terminal-extension/src/index.ts#L323
+              const terminal: MainAreaWidget<ITerminal.ITerminal> | undefined =
+                await this._app.commands.execute('terminal:open', {
+                  name: 'genv'
+                });
+
+              if (terminal) {
+                terminal.content.session.send({
+                  type: 'stdin',
+                  content: [
+                    `genv activate --id kernel-${panel.sessionContext.session.kernel.id}\n`
+                  ]
+                });
+              }
+            }
           } else {
             await showDialog({
               title: 'Not a genv Kernel',
@@ -89,6 +124,8 @@ export class ButtonExtension
     // button *is* the extension for the purposes of this method.
     return mybutton;
   }
+
+  private _app;
 }
 
 const plugin: JupyterFrontEndPlugin<void> = {
@@ -96,7 +133,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
   autoStart: true,
   requires: [ICommandPalette],
   activate: async (app: JupyterFrontEnd, palette: ICommandPalette) => {
-    app.docRegistry.addWidgetExtension('Notebook', new ButtonExtension());
+    app.docRegistry.addWidgetExtension('Notebook', new ButtonExtension(app));
 
     const devicesInfos = await requestAPI<any>('devices');
     const devicesWidget = new MainAreaWidget({
