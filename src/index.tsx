@@ -34,25 +34,44 @@ export class ButtonExtension
       tooltip: 'Configure this GPU environment',
       onClick: async () => {
         if (panel.sessionContext.session?.kernel) {
-          await showDialog({
-            title: 'Configure Your GPU Environment',
-            body: ReactWidget.create(
-              <>
-                Open a terminal and run the following command:
-                <br />
-                <br />
-                <code>
-                  genv activate --id kernel-
-                  {panel.sessionContext.session.kernel.id}
-                </code>
-                <br />
-                <i>IMPORTANT:</i>
-                You will need to restart the kernel for changes form the
-                terminal to take effect.
-              </>
-            ),
-            buttons: [Dialog.okButton()]
-          });
+          const spec = await panel.sessionContext.session.kernel.spec;
+
+          if (spec?.name.endsWith('-genv')) {
+            await showDialog({
+              title: 'Configure Your GPU Environment',
+              body: ReactWidget.create(
+                <>
+                  Open a terminal and run the following command:
+                  <br />
+                  <br />
+                  <code>
+                    genv activate --id kernel-
+                    {panel.sessionContext.session.kernel.id}
+                  </code>
+                  <br />
+                  <i>IMPORTANT:</i>
+                  You will need to restart the kernel for changes form the
+                  terminal to take effect.
+                </>
+              ),
+              buttons: [Dialog.okButton()]
+            });
+          } else {
+            await showDialog({
+              title: 'Not a genv Kernel',
+              body: ReactWidget.create(
+                <>
+                  Please select a genv kernel.
+                  <br />
+                  If you don't have any, run the following command:
+                  <br />
+                  <br />
+                  <code>python -m jupyterlab_genv install</code>
+                </>
+              ),
+              buttons: [Dialog.warnButton()]
+            });
+          }
         } else {
           await showDialog({
             title: 'No Kernel',
