@@ -479,22 +479,6 @@
     "@lumino/widgets" "^1.33.0"
     react "^17.0.1"
 
-"@jupyterlab/launcher@^3.4.7":
-  version "3.4.7"
-  resolved "https://registry.yarnpkg.com/@jupyterlab/launcher/-/launcher-3.4.7.tgz#253968ef84e719a6a6e74bf620cce012ff4623e0"
-  integrity sha512-BVzZTJFOnrv7FWDPTEM/8RInKnZyKV4CX1Dn5FOvTL03DABumeLH0BhUoM+ee0rCJcJMXdoBBnCdN9vIGiK/Gg==
-  dependencies:
-    "@jupyterlab/apputils" "^3.4.7"
-    "@jupyterlab/translation" "^3.4.7"
-    "@jupyterlab/ui-components" "^3.4.7"
-    "@lumino/algorithm" "^1.9.0"
-    "@lumino/commands" "^1.19.0"
-    "@lumino/coreutils" "^1.11.0"
-    "@lumino/disposable" "^1.10.0"
-    "@lumino/properties" "^1.8.0"
-    "@lumino/widgets" "^1.33.0"
-    react "^17.0.1"
-
 "@jupyterlab/nbformat@^3.4.7":
   version "3.4.7"
   resolved "https://registry.npmjs.org/@jupyterlab/nbformat/-/nbformat-3.4.7.tgz"
@@ -666,6 +650,21 @@
     csstype "~3.0.3"
     react "^17.0.1"
     typestyle "^2.0.4"
+
+"@jupyterlab/terminal@^3.4.7":
+  version "3.4.7"
+  resolved "https://registry.yarnpkg.com/@jupyterlab/terminal/-/terminal-3.4.7.tgz#e08e022a7d536d7b06b8b2ac5bd95cde90e855a0"
+  integrity sha512-VZMI1YmQaetOtEicf4JL1LQHNtaaqoWnAbDTj2iaSCM7W4RaXFD+kH48L5tNhV7o7zzQjl8pSrfA+7DK3xPgMA==
+  dependencies:
+    "@jupyterlab/apputils" "^3.4.7"
+    "@jupyterlab/services" "^6.4.7"
+    "@jupyterlab/translation" "^3.4.7"
+    "@lumino/coreutils" "^1.11.0"
+    "@lumino/domutils" "^1.8.0"
+    "@lumino/messaging" "^1.10.0"
+    "@lumino/widgets" "^1.33.0"
+    xterm "~4.19.0"
+    xterm-addon-fit "~0.5.0"
 
 "@jupyterlab/translation@^3.4.7":
   version "3.4.7"
@@ -6485,6 +6484,16 @@ xtend@^4.0.2, xtend@~4.0.0:
   version "4.0.2"
   resolved "https://registry.npmjs.org/xtend/-/xtend-4.0.2.tgz"
   integrity sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==
+
+xterm-addon-fit@~0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/xterm-addon-fit/-/xterm-addon-fit-0.5.0.tgz#2d51b983b786a97dcd6cde805e700c7f913bc596"
+  integrity sha512-DsS9fqhXHacEmsPxBJZvfj2la30Iz9xk+UKjhQgnYNkrUIN5CYLbw7WEfz117c7+S86S/tpHPfvNxJsF5/G8wQ==
+
+xterm@~4.19.0:
+  version "4.19.0"
+  resolved "https://registry.yarnpkg.com/xterm/-/xterm-4.19.0.tgz#c0f9d09cd61de1d658f43ca75f992197add9ef6d"
+  integrity sha512-c3Cp4eOVsYY5Q839dR5IejghRPpxciGmLWWaP9g+ppfMeBChMeLa1DCA+pmX/jyDZ+zxFOmlJL/82qVdayVoGQ==
 
 y-codemirror@^3.0.1:
   version "3.0.1"

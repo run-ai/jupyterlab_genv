@@ -2,14 +2,11 @@ from typing import Dict, List
 
 from . import control
 
-async def exec(command: str) -> str:
+async def _exec(command: str) -> str:
     return await control.exec(f'exec devices {command}')
 
-async def query(eid: str) -> List[int]:
-    return [int(index) for index in (await exec(f'query --eid {eid}')).split(',') if len(index) > 0]
-
 async def ps() -> Dict:
-    stdout = await exec("ps --format csv --no-header --timestamp")
+    stdout = await _exec("ps --format csv --no-header --timestamp")
     lines = [line for line in stdout.splitlines() if len(line)]
 
     infos = []
@@ -24,3 +21,6 @@ async def ps() -> Dict:
         })
 
     return infos
+
+async def query(eid: str) -> List[int]:
+    return [int(index) for index in (await _exec(f'query --eid {eid}')).split(',') if len(index) > 0]

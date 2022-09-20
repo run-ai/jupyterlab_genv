@@ -22,6 +22,69 @@ import { IDisposable } from '@lumino/disposable';
 import React from 'react';
 
 import { requestAPI } from './handler';
+import { Env } from './models/env';
+
+async function activate(kernel_id: string, eid: string) {
+  const body = JSON.stringify({
+    eid: eid,
+    kernel_id: kernel_id
+  });
+
+  await requestAPI('activate', {
+    body: body,
+    method: 'POST'
+  });
+}
+
+function Configuration(props: { kernel_id: string; envs: Env[] }): JSX.Element {
+  function Existing(): JSX.Element {
+    return (
+      <>
+        <h3>Attach to existing environment</h3>
+        {props.envs.map(env => (
+          <div>
+            {env.eid}
+            <button
+              className="jp-Dialog-button jp-mod-styled jp-mod-accept"
+              onClick={async () => await activate(props.kernel_id, env.eid)}
+            >
+              Use
+            </button>
+          </div>
+        ))}
+      </>
+    );
+  }
+
+  function Terminal(): JSX.Element {
+    return (
+      <>
+        <h3>Create a new environment</h3>
+        Open a terminal and run the following command:
+        <br />
+        <br />
+        <code>genv activate --id {props.kernel_id}</code>
+        <br />
+        Then, configure the environment with normal genv commands.
+        <br />
+        If you are not familiar with how to configure genv environments, check
+        out the genv reference at https://github.com/run-ai/genv.
+        <br />
+        <br />
+        <i>IMPORTANT:</i>
+        You will need to restart the kernel for changes form the terminal to
+        effect.
+      </>
+    );
+  }
+
+  return (
+    <>
+      {props.envs.length > 0 ? <Existing /> : <></>}
+      <Terminal />
+    </>
+  );
+}
 
 export class ButtonExtension
   implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel>
@@ -37,28 +100,20 @@ export class ButtonExtension
     // Create the toolbar button
     const mybutton = new ToolbarButton({
       label: 'GPUs',
-      tooltip: 'Configure this GPU environment',
+      tooltip: 'Configure the GPU environment',
       onClick: async () => {
         if (panel.sessionContext.session?.kernel) {
           const spec = await panel.sessionContext.session.kernel.spec;
 
           if (spec?.name.endsWith('-genv')) {
+            const envs = await requestAPI<Env[]>('envs');
             const result = await showDialog({
-              title: 'Configure Your GPU Environment',
+              title: 'Configure The GPU Environment',
               body: ReactWidget.create(
-                <>
-                  Open a terminal and run the following command:
-                  <br />
-                  <br />
-                  <code>
-                    genv activate --id kernel-
-                    {panel.sessionContext.session.kernel.id}
-                  </code>
-                  <br />
-                  <i>IMPORTANT:</i>
-                  You will need to restart the kernel for changes form the
-                  terminal to take effect.
-                </>
+                <Configuration
+                  kernel_id={panel.sessionContext.session.kernel.id}
+                  envs={envs}
+                />
               ),
               buttons: [
                 Dialog.cancelButton({ label: 'Later' }),
@@ -86,7 +141,7 @@ export class ButtonExtension
                 terminal.content.session.send({
                   type: 'stdin',
                   content: [
-                    `genv activate --id kernel-${panel.sessionContext.session.kernel.id}\n`
+                    `genv activate --id ${panel.sessionContext.session.kernel.id}\n`
                   ]
                 });
               }

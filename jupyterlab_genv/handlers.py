@@ -16,6 +16,13 @@ class EnvsHandler(APIHandler):
     async def get(self):
         self.finish(json.dumps(await genv.envs.ps()))
 
+class ActivateHandler(APIHandler):
+    @tornado.web.authenticated
+    async def post(self):
+        body = self.get_json_body()
+        await genv.envs.activate(body['eid'], body['kernel_id'])
+        self.finish()
+
 def setup_handlers(web_app):
     host_pattern = ".*$"
 
@@ -25,6 +32,7 @@ def setup_handlers(web_app):
     handlers = [
         (url("devices"), DevicesHandler),
         (url("envs"), EnvsHandler),
+        (url("activate"), ActivateHandler),
     ]
 
     web_app.add_handlers(host_pattern, handlers)
