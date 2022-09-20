@@ -7,11 +7,10 @@ import {
   ICommandPalette,
   MainAreaWidget,
   ToolbarButton,
-  Dialog,
-  showDialog,
   ReactWidget
 } from '@jupyterlab/apputils';
 
+import { Kernel } from '@jupyterlab/services';
 import { ITerminal } from '@jupyterlab/terminal';
 
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -23,6 +22,8 @@ import React from 'react';
 
 import { requestAPI } from './handler';
 import { Env } from './models/env';
+
+import { Dialogs } from './dialogs';
 
 async function activate(kernel_id: string, eid: string) {
   const body = JSON.stringify({
@@ -36,54 +37,65 @@ async function activate(kernel_id: string, eid: string) {
   });
 }
 
-function Configuration(props: { kernel_id: string; envs: Env[] }): JSX.Element {
-  function Existing(): JSX.Element {
-    return (
-      <>
-        <h3>Attach to existing environment</h3>
-        {props.envs.map(env => (
-          <div>
-            {env.eid}
-            <button
-              className="jp-Dialog-button jp-mod-styled jp-mod-accept"
-              onClick={async () => await activate(props.kernel_id, env.eid)}
-            >
-              Use
-            </button>
-          </div>
-        ))}
-      </>
-    );
-  }
+async function openTerminal(eid: string, app: JupyterFrontEnd): Promise<void> {
+  // NOTE(raz): the terminal is returned only when it's created in the first time.
+  //    this means that we can't send commands to the terminal if it's already running.
+  //    we should consider either creating a terminal per kernel or fixing this.
+  //    we tried opening a terminal per kernel but it seems like terminal names can't
+  //    be long enough to contain a kernel identifier.
+  //    here's a reference:
+  //    https://github.com/jupyterlab/jupyterlab/blob/v3.4.7/packages/terminal-extension/src/index.ts#L323
+  const terminal: MainAreaWidget<ITerminal.ITerminal> | undefined =
+    await app.commands.execute('terminal:open', { name: 'genv' });
 
-  function Terminal(): JSX.Element {
-    return (
-      <>
-        <h3>Create a new environment</h3>
-        Open a terminal and run the following command:
-        <br />
-        <br />
-        <code>genv activate --id {props.kernel_id}</code>
-        <br />
-        Then, configure the environment with normal genv commands.
-        <br />
-        If you are not familiar with how to configure genv environments, check
-        out the genv reference at https://github.com/run-ai/genv.
-        <br />
-        <br />
-        <i>IMPORTANT:</i>
-        You will need to restart the kernel for changes form the terminal to
-        effect.
-      </>
-    );
+  if (terminal) {
+    terminal.content.session.send({
+      type: 'stdin',
+      content: [
+        [
+          '# this is a terminal for configuring your genv environment.',
+          '# it will be activated in your environment.',
+          '# you can configure your environment and attach devices from here.',
+          '# ',
+          '# you can start with running the following command:',
+          '# ',
+          '#     genv attach --help',
+          '# ',
+          '# for more information check out the reference at https://github.com/run-ai/genv',
+          '',
+          `genv activate --id ${eid}`
+        ]
+          .map(line => line + '\n')
+          .join('')
+      ]
+    });
   }
+}
 
-  return (
-    <>
-      {props.envs.length > 0 ? <Existing /> : <></>}
-      <Terminal />
-    </>
-  );
+async function handleClick(
+  kernel: Kernel.IKernelConnection | null | undefined,
+  app: JupyterFrontEnd
+) {
+  if (kernel) {
+    const spec = await kernel.spec;
+
+    if (spec?.name.endsWith('-genv')) {
+      const envs = await requestAPI<Env[]>('envs');
+
+      const eid = await Dialogs.activate(envs, kernel.id);
+      if (eid) {
+        await activate(kernel.id, eid);
+
+        if (await Dialogs.configure(eid)) {
+          await openTerminal(eid, app);
+        }
+      }
+    } else {
+      await Dialogs.notSupportedKernel();
+    }
+  } else {
+    await Dialogs.noKernel();
+  }
 }
 
 export class ButtonExtension
@@ -102,73 +114,7 @@ export class ButtonExtension
       label: 'GPUs',
       tooltip: 'Configure the GPU environment',
       onClick: async () => {
-        if (panel.sessionContext.session?.kernel) {
-          const spec = await panel.sessionContext.session.kernel.spec;
-
-          if (spec?.name.endsWith('-genv')) {
-            const envs = await requestAPI<Env[]>('envs');
-            const result = await showDialog({
-              title: 'Configure The GPU Environment',
-              body: ReactWidget.create(
-                <Configuration
-                  kernel_id={panel.sessionContext.session.kernel.id}
-                  envs={envs}
-                />
-              ),
-              buttons: [
-                Dialog.cancelButton({ label: 'Later' }),
-                Dialog.okButton({
-                  label: 'Open a terminal',
-                  accept: true
-                })
-              ]
-            });
-
-            if (result.button.accept) {
-              // NOTE(raz): the terminal is returned only when it's created in the first time.
-              //    this means that we can't send commands to the terminal if it's already running.
-              //    we should consider either creating a terminal per kernel or fixing this.
-              //    we tried opening a terminal per kernel but it seems like terminal names can't
-              //    be long enough to contain a kernel identifier.
-              //    here's a reference:
-              //    https://github.com/jupyterlab/jupyterlab/blob/v3.4.7/packages/terminal-extension/src/index.ts#L323
-              const terminal: MainAreaWidget<ITerminal.ITerminal> | undefined =
-                await this._app.commands.execute('terminal:open', {
-                  name: 'genv'
-                });
-
-              if (terminal) {
-                terminal.content.session.send({
-                  type: 'stdin',
-                  content: [
-                    `genv activate --id ${panel.sessionContext.session.kernel.id}\n`
-                  ]
-                });
-              }
-            }
-          } else {
-            await showDialog({
-              title: 'Not a genv Kernel',
-              body: ReactWidget.create(
-                <>
-                  Please select a genv kernel.
-                  <br />
-                  If you don't have any, run the following command:
-                  <br />
-                  <br />
-                  <code>python -m jupyterlab_genv install</code>
-                </>
-              ),
-              buttons: [Dialog.warnButton()]
-            });
-          }
-        } else {
-          await showDialog({
-            title: 'No Kernel',
-            body: 'You need a kernel in order to run in a GPU environment.',
-            buttons: [Dialog.warnButton()]
-          });
-        }
+        await handleClick(panel.sessionContext.session?.kernel, this._app);
       }
     });
 
