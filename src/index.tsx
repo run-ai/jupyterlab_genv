@@ -6,9 +6,10 @@ import {
 import {
   ICommandPalette,
   MainAreaWidget,
-  ToolbarButton,
-  ReactWidget
+  ToolbarButton
 } from '@jupyterlab/apputils';
+
+import { refreshIcon } from '@jupyterlab/ui-components';
 
 import { Kernel } from '@jupyterlab/services';
 import { ITerminal } from '@jupyterlab/terminal';
@@ -17,8 +18,8 @@ import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 
 import { IDisposable } from '@lumino/disposable';
-
-import React from 'react';
+import { Message } from '@lumino/messaging';
+import { Widget } from '@lumino/widgets';
 
 import { Handler } from './handler';
 
@@ -131,6 +132,61 @@ export class ButtonExtension
   private _app;
 }
 
+class DevicesWidget extends Widget {
+  private div?: HTMLDivElement;
+
+  async onUpdateRequest(_msg: Message): Promise<void> {
+    const devices = await Handler.devices();
+
+    if (this.div) {
+      this.node.removeChild(this.div);
+    }
+
+    this.div = document.createElement('div');
+    this.node.appendChild(this.div);
+
+    for (const index in devices) {
+      const device = devices[index];
+      const div = document.createElement('div');
+
+      if (device.eid) {
+        div.innerText = `GPU ${index}: used by environment ${device.eid}`;
+      } else {
+        div.innerText = `GPU ${index}: available`;
+      }
+
+      this.div.appendChild(div);
+    }
+  }
+}
+
+class EnvsWidget extends Widget {
+  private div?: HTMLDivElement;
+
+  async onUpdateRequest(_msg: Message): Promise<void> {
+    const envs = await Handler.envs();
+
+    if (this.div) {
+      this.node.removeChild(this.div);
+    }
+
+    this.div = document.createElement('div');
+    this.node.appendChild(this.div);
+
+    for (const env of envs) {
+      const div = document.createElement('div');
+
+      div.innerText = `${env.eid} ${env.user}`;
+
+      if (env.name) {
+        div.innerText += ` ${env.name}`;
+      }
+
+      this.div.appendChild(div);
+    }
+  }
+}
+
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupyterlab_genv:plugin',
   autoStart: true,
@@ -138,29 +194,26 @@ const plugin: JupyterFrontEndPlugin<void> = {
   activate: async (app: JupyterFrontEnd, palette: ICommandPalette) => {
     app.docRegistry.addWidgetExtension('Notebook', new ButtonExtension(app));
 
-    const devicesInfos = await Handler.devices();
-    const devicesWidget = new MainAreaWidget({
-      content: ReactWidget.create(
-        <>
-          {devicesInfos.map((device: { eid: string }, i: number) => (
-            <div>
-              GPU {i}:{' '}
-              {device.eid === '' ? (
-                <span style={{ color: 'green' }}>available</span>
-              ) : (
-                <span>used by enviornment {device.eid}</span>
-              )}
-            </div>
-          ))}
-        </>
-      )
-    });
+    const devicesContent = new DevicesWidget();
+    const devicesWidget = new MainAreaWidget({ content: devicesContent });
 
     devicesWidget.id = 'jupyterlab_genv.devices';
     devicesWidget.title.label = 'GPUs: Devices';
     devicesWidget.title.closable = true;
+    devicesWidget.toolbar.insertItem(
+      0,
+      'refresh',
+      new ToolbarButton({
+        icon: refreshIcon,
+        tooltip: 'Refresh',
+        onClick: () => {
+          devicesContent.update();
+        }
+      })
+    );
 
     const devicesCommand = 'jupyterlab_genv.devices.open';
+
     app.commands.addCommand(devicesCommand, {
       label: 'GPUs: Show Devices',
       execute: () => {
@@ -174,25 +227,26 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     palette.addItem({ command: devicesCommand, category: 'GPUs' });
 
-    const envsInfos = await Handler.envs();
-    const envsWidget = new MainAreaWidget({
-      content: ReactWidget.create(
-        <>
-          {envsInfos.map((env: any) => (
-            <div>
-              {`${env['eid']} ${env['user']}`}
-              {env['name'] !== '' ? ` ${env['name']}` : null}
-            </div>
-          ))}
-        </>
-      )
-    });
+    const envsContent = new EnvsWidget();
+    const envsWidget = new MainAreaWidget({ content: envsContent });
 
     envsWidget.id = 'jupyterlab_genv.envs';
     envsWidget.title.label = 'GPUs: Environments';
     envsWidget.title.closable = true;
+    envsWidget.toolbar.insertItem(
+      0,
+      'refresh',
+      new ToolbarButton({
+        icon: refreshIcon,
+        tooltip: 'Refresh',
+        onClick: () => {
+          envsContent.update();
+        }
+      })
+    );
 
     const envsCommand = 'jupyterlab_genv.envs.open';
+
     app.commands.addCommand(envsCommand, {
       label: 'GPUs: Show Environments',
       execute: () => {
