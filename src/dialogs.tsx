@@ -44,19 +44,28 @@ export namespace Dialogs {
   }
 
   export async function activate(
-    envs: { eid: string }[],
+    envs: { eid: string; name: string }[],
     kernel_id: string
   ): Promise<string | null> {
     const placeholder = 'Create a new environment';
 
+    function desc(env: { eid: string; name: string }): string {
+      return env.name ? `${env.name} (${env.eid})` : env.eid;
+    }
+
+    const values = new Map<string, string>([
+      [placeholder, kernel_id],
+      ...(envs.map(env => [desc(env), env.eid]) as [string, string][])
+    ]);
+
     let { value } = await InputDialog.getItem({
       title: 'Activate GPU Environment',
-      items: [placeholder, ...envs.map(env => env.eid)],
+      items: [...values.keys()],
       okLabel: 'Next'
     });
 
-    if (value === placeholder) {
-      value = kernel_id;
+    if (value) {
+      value = values.get(value) || value;
     }
 
     return value;

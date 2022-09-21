@@ -65,7 +65,7 @@ export namespace Handler {
     return await requestAPI('devices');
   }
 
-  export async function envs(): Promise<{ eid: string }[]> {
+  export async function envs(): Promise<{ eid: string; name: string }[]> {
     return await requestAPI('envs');
   }
 
