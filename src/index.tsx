@@ -20,22 +20,9 @@ import { IDisposable } from '@lumino/disposable';
 
 import React from 'react';
 
-import { requestAPI } from './handler';
-import { Env } from './models/env';
+import { Handler } from './handler';
 
 import { Dialogs } from './dialogs';
-
-async function activate(kernel_id: string, eid: string) {
-  const body = JSON.stringify({
-    eid: eid,
-    kernel_id: kernel_id
-  });
-
-  await requestAPI('activate', {
-    body: body,
-    method: 'POST'
-  });
-}
 
 async function openTerminal(eid: string, app: JupyterFrontEnd): Promise<void> {
   // NOTE(raz): the terminal is returned only when it's created in the first time.
@@ -62,6 +49,8 @@ async function openTerminal(eid: string, app: JupyterFrontEnd): Promise<void> {
           '#     genv attach --help',
           '# ',
           '# for more information check out the reference at https://github.com/run-ai/genv',
+          '# ',
+          '# IMPORTANT: you will need to restart your Jupyter kernel after configuring the environment from the terminal.',
           '',
           `genv activate --id ${eid}`
         ]
@@ -80,12 +69,19 @@ async function handleClick(
     const spec = await kernel.spec;
 
     if (spec?.name.endsWith('-genv')) {
-      const envs = await requestAPI<Env[]>('envs');
+      let eid: string | null = await Handler.find(kernel.id);
 
-      const eid = await Dialogs.activate(envs, kernel.id);
+      if (!eid) {
+        const envs = await Handler.envs();
+
+        eid = await Dialogs.activate(envs, kernel.id);
+
+        if (eid) {
+          await Handler.activate(kernel.id, eid);
+        }
+      }
+
       if (eid) {
-        await activate(kernel.id, eid);
-
         if (await Dialogs.configure(eid)) {
           await openTerminal(eid, app);
         }
@@ -136,17 +132,17 @@ const plugin: JupyterFrontEndPlugin<void> = {
   activate: async (app: JupyterFrontEnd, palette: ICommandPalette) => {
     app.docRegistry.addWidgetExtension('Notebook', new ButtonExtension(app));
 
-    const devicesInfos = await requestAPI<any>('devices');
+    const devicesInfos = await Handler.devices();
     const devicesWidget = new MainAreaWidget({
       content: ReactWidget.create(
         <>
-          {devicesInfos.map((device: any, i: number) => (
+          {devicesInfos.map((device: { eid: string }, i: number) => (
             <div>
               GPU {i}:{' '}
-              {device['eid'] === '' ? (
+              {device.eid === '' ? (
                 <span style={{ color: 'green' }}>available</span>
               ) : (
-                <span>used by enviornment {device['eid']}</span>
+                <span>used by enviornment {device.eid}</span>
               )}
             </div>
           ))}
@@ -172,7 +168,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     palette.addItem({ command: devicesCommand, category: 'GPUs' });
 
-    const envsInfos = await requestAPI<any>('envs');
+    const envsInfos = await Handler.envs();
     const envsWidget = new MainAreaWidget({
       content: ReactWidget.create(
         <>

@@ -7,8 +7,6 @@ import {
 
 import React from 'react';
 
-import { Env } from './models/env';
-
 export namespace Dialogs {
   export async function noKernel(): Promise<void> {
     await showDialog({
@@ -36,7 +34,7 @@ export namespace Dialogs {
   }
 
   export async function activate(
-    envs: Env[],
+    envs: { eid: string }[],
     kernel_id: string
   ): Promise<string | null> {
     const placeholder = 'Create a new environment';

@@ -9,7 +9,7 @@ import { ServerConnection } from '@jupyterlab/services';
  * @param init Initial values for the request
  * @returns The response body interpreted as JSON
  */
-export async function requestAPI<T>(
+async function requestAPI<T>(
   endPoint = '',
   init: RequestInit = {}
 ): Promise<T> {
@@ -43,4 +43,33 @@ export async function requestAPI<T>(
   }
 
   return data;
+}
+
+export namespace Handler {
+  export async function activate(
+    kernel_id: string,
+    eid: string
+  ): Promise<void> {
+    const body = JSON.stringify({
+      eid: eid,
+      kernel_id: kernel_id
+    });
+
+    await requestAPI('activate', {
+      body: body,
+      method: 'POST'
+    });
+  }
+
+  export async function devices(): Promise<{ eid: string }[]> {
+    return await requestAPI('devices');
+  }
+
+  export async function envs(): Promise<{ eid: string }[]> {
+    return await requestAPI('envs');
+  }
+
+  export async function find(kernel_id: string): Promise<string | null> {
+    return (await requestAPI<string>(`find?kernel_id=${kernel_id}`)) || null;
+  }
 }

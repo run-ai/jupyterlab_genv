@@ -23,6 +23,12 @@ class ActivateHandler(APIHandler):
         await genv.envs.activate(body['eid'], body['kernel_id'])
         self.finish()
 
+class FindHandler(APIHandler):
+    @tornado.web.authenticated
+    async def get(self):
+        kernel_id = self.get_query_argument('kernel_id')
+        self.finish(json.dumps(await genv.envs.find(kernel_id)))
+
 def setup_handlers(web_app):
     host_pattern = ".*$"
 
@@ -33,6 +39,7 @@ def setup_handlers(web_app):
         (url("devices"), DevicesHandler),
         (url("envs"), EnvsHandler),
         (url("activate"), ActivateHandler),
+        (url("find"), FindHandler),
     ]
 
     web_app.add_handlers(host_pattern, handlers)
