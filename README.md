@@ -46,33 +46,41 @@ jupyter labextension list
 ## Contributing
 
 ### Development setup
+
 #### Create a virtual environment
+
 ```bash
 conda create -n jupyterlab_genv --override-channels --strict-channel-priority -c conda-forge -c nodefaults jupyterlab=3 cookiecutter nodejs jupyter-packaging git
 ```
 
 #### Activate the virtual environment
+
 ```bash
 conda activate jupyterlab_genv
 ```
 
 #### Install kernel provisioner
+
 First, you can test that the Python package is installed correctly and exposes the provisioner class by running:
+
 ```
 python -c "from jupyterlab_genv import genv_provisioner; provisioner = genv_provisioner.GenvProvisioner(); print(provisioner)"
 ```
 
 Second, you can test that the kernel provisioner is registered in Jupyter by running:
+
 ```
 jupyter kernelspec provisioners
 ```
 
 To add a kernel provisioner to a kernel, edit its `kernel.json` file:
+
 ```
 vim $(conda info --base)/envs/jupyterlab_genv/share/jupyter/kernels/python3/kernel.json
 ```
 
 And add:
+
 ```
 "metadata": {
   "kernel_provisioner": {
@@ -82,6 +90,7 @@ And add:
 ```
 
 #### List all running kernels
+
 ```
 ls -la $(jupyter --runtime-dir)/kernel-*.json
 ```
