@@ -36,6 +36,8 @@ async function openTerminal(eid: string, app: JupyterFrontEnd): Promise<void> {
     await app.commands.execute('terminal:open', { name: 'genv' });
 
   if (terminal) {
+    app.shell.add(terminal, 'main', { mode: 'split-bottom' });
+
     terminal.content.session.send({
       type: 'stdin',
       content: [
