@@ -8,16 +8,21 @@ import {
 import React from 'react';
 
 export namespace Dialogs {
-  export async function noKernel(): Promise<void> {
-    await showDialog({
+  export async function noKernel(): Promise<boolean> {
+    const { button } = await showDialog({
       title: 'No Kernel',
       body: 'You need a kernel in order to run in a GPU environment.',
-      buttons: [Dialog.warnButton()]
+      buttons: [
+        Dialog.cancelButton({ label: 'Later' }),
+        Dialog.warnButton({ label: 'Select kernel', accept: true })
+      ]
     });
+
+    return button.accept;
   }
 
-  export async function notSupportedKernel(): Promise<void> {
-    await showDialog({
+  export async function notSupportedKernel(): Promise<boolean> {
+    const { button } = await showDialog({
       title: 'Not a genv Kernel',
       body: ReactWidget.create(
         <>
@@ -29,8 +34,13 @@ export namespace Dialogs {
           <code>python -m jupyterlab_genv install</code>
         </>
       ),
-      buttons: [Dialog.warnButton()]
+      buttons: [
+        Dialog.cancelButton({ label: 'Later' }),
+        Dialog.warnButton({ label: 'Select kernel', accept: true })
+      ]
     });
+
+    return button.accept;
   }
 
   export async function activate(

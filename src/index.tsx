@@ -87,10 +87,14 @@ async function handleClick(
         }
       }
     } else {
-      await Dialogs.notSupportedKernel();
+      if (await Dialogs.notSupportedKernel()) {
+        await app.commands.execute('notebook:change-kernel');
+      }
     }
   } else {
-    await Dialogs.noKernel();
+    if (await Dialogs.noKernel()) {
+      await app.commands.execute('notebook:change-kernel');
+    }
   }
 }
 
