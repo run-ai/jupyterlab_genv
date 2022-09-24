@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "jupyterlab_genv"
 version = "0.1.0"
-description = "A JupyterLab extension."
+description = "A JupyterLab extension for managing GPU environments using genv."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.7"
