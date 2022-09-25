@@ -3,80 +3,100 @@
 [![Github Actions Status](https://github.com/run-ai/jupyterlab_genv/workflows/Build/badge.svg)](https://github.com/run-ai/jupyterlab_genv/actions/workflows/build.yml)
 A JupyterLab extension.
 
-This extension is composed of a Python package named `jupyterlab_genv`
-for the server extension and a NPM package named `jupyterlab_genv`
-for the frontend extension.
-
 ## Requirements
 
-- JupyterLab >= 3.0
+JupyterLab >= 3.0
 
 ## Install
 
-To install the extension, execute:
+### Pip
+
+You can install `jupyterlab_genv` from [PyPI](https://pypi.org/project/jupyterlab-genv/) using `pip`:
 
 ```bash
 pip install jupyterlab_genv
 ```
 
-## Uninstall
+## Development
 
-To remove the extension, execute:
+### Setup
 
-```bash
-pip uninstall jupyterlab_genv
-```
-
-## Troubleshoot
-
-If you are seeing the frontend extension, but it is not working, check
-that the server extension is enabled:
-
-```bash
-jupyter server extension list
-```
-
-If the server extension is installed and enabled, but you are not seeing
-the frontend extension, check the frontend extension is installed:
-
-```bash
-jupyter labextension list
-```
-
-## Contributing
-
-### Development setup
-
-#### Create a virtual environment
+You will need to create a virtual environment once using the command:
 
 ```bash
 conda create -n jupyterlab_genv --override-channels --strict-channel-priority -c conda-forge -c nodefaults jupyterlab=3 cookiecutter nodejs jupyter-packaging git
 ```
 
-#### Activate the virtual environment
+Then, activate the virtual environment when you want to work on the project:
 
 ```bash
 conda activate jupyterlab_genv
 ```
 
-#### Install kernel provisioner
+### Install
 
-First, you can test that the Python package is installed correctly and exposes the provisioner class by running:
+Use the following commands to install the Python package and enable it in JupyterLab:
+
+```bash
+# Install package in development mode
+pip install -e .
+# Link your development version of the extension with JupyterLab
+jupyter labextension develop . --overwrite
+# Server extension must be manually installed in develop mode
+jupyter server extension enable jupyterlab_genv
+```
+
+If you make any changes you will need to rebuild the extension Typescript source using:
 
 ```
-python -c "from jupyterlab_genv import genv_provisioner; provisioner = genv_provisioner.GenvProvisioner(); print(provisioner)"
+jlpm build
 ```
 
-Second, you can test that the kernel provisioner is registered in Jupyter by running:
+Alternatively, you can watch the source directory using:
 
 ```
+jlpm watch
+```
+
+With the `jlpm watch` command running, every saved change will immediately be built locally and available in your running JupyterLab. Refresh JupyterLab to load the change in your browser (you may need to wait several seconds for the extension to be rebuilt).
+
+### Run
+
+Run JupyterLab using the command:
+
+```bash
+jupyter lab
+```
+
+> Running `SHELL=bash jupyter lab --no-browser` is even better
+
+### Uninstall
+
+```bash
+# Server extension must be manually disabled in develop mode
+jupyter server extension disable jupyterlab_genv
+pip uninstall jupyterlab_genv
+```
+
+In development mode, you will also need to remove the symlink created by `jupyter labextension develop` command.
+To find its location, you can run `jupyter labextension list` to figure out where the `labextensions` folder is located.
+Then you can remove the symlink named `jupyterlab_genv` within that folder.
+
+### Reference
+
+#### List all kernel provisioners
+
+```bash
 jupyter kernelspec provisioners
 ```
 
-To add a kernel provisioner to a kernel, edit its `kernel.json` file:
+#### Install a kernel provisioner
 
-```
-vim $(conda info --base)/envs/jupyterlab_genv/share/jupyter/kernels/python3/kernel.json
+To add a kernel provisioner to a kernel spec, edit its `kernel.json` file.
+For example, to install a kernel provisioner for the `python3` kernel spec, run:
+
+```bash
+vim $CONDA_PREFIX/share/jupyter/kernels/python3/kernel.json
 ```
 
 And add:
@@ -89,64 +109,71 @@ And add:
 }
 ```
 
+#### List all available kernel specs
+
+```bash
+ls -la $CONDA_PREFIX/share/jupyter/kernels/
+```
+
 #### List all running kernels
 
-```
+```bash
 ls -la $(jupyter --runtime-dir)/kernel-*.json
 ```
 
-### Development install
-
-Note: You will need NodeJS to build the extension package.
-
-The `jlpm` command is JupyterLab's pinned version of
-[yarn](https://yarnpkg.com/) that is installed with JupyterLab. You may use
-`yarn` or `npm` in lieu of `jlpm` below.
+#### List Jupyter server extensions
 
 ```bash
-# Clone the repo to your local environment
-# Change directory to the jupyterlab_genv directory
-# Install package in development mode
-pip install -e .
-# Link your development version of the extension with JupyterLab
-jupyter labextension develop . --overwrite
-# Server extension must be manually installed in develop mode
-jupyter server extension enable jupyterlab_genv
-# Rebuild extension Typescript source after making changes
-jlpm build
+jupyter server extension list
 ```
 
-You can watch the source directory and run JupyterLab at the same time in different terminals to watch for changes in the extension's source and automatically rebuild the extension.
+#### List JupyterLab extensions
 
 ```bash
-# Watch the source directory in one terminal, automatically rebuilding when needed
-jlpm watch
-# Run JupyterLab in another terminal
-jupyter lab
+jupyter labextension list
 ```
 
-> You can pass `--no-browser` to the `jupyter lab` command
+## Publish
 
-With the watch command running, every saved change will immediately be built locally and available in your running JupyterLab. Refresh JupyterLab to load the change in your browser (you may need to wait several seconds for the extension to be rebuilt).
+The Python package is manually published to both [PyPI](https://pypi.org/project/jupyterlab-genv/) and [conda-forge](https://conda-forge.org/).
 
-By default, the `jlpm build` command generates the source maps for this extension to make it easier to debug using the browser dev tools. To also generate source maps for the JupyterLab core extensions, you can run the following command:
+We do not publish the frontend part as an npm package because the Python package is a prebuilt server extension, and the frontend part alone is useless.
+
+Also make sure to update the [changelog](./CHANGELOG.md) ([here's](https://keepachangelog.com/en/1.0.0/#how) how).
+
+### PyPI
+
+#### Prerequisites
 
 ```bash
-jupyter lab build --minimize=False
+pip install build twine tbump
 ```
 
-### Development uninstall
+#### Bump Version
+
+The [cookiecutter template](https://github.com/jupyterlab/extension-cookiecutter-ts) uses `tbump` for bumping the version.
+However, for some reason this does not work at the moment, and we bump the version manually.
+
+Search for the current version in the project files and replace the relevant instances.
+Here is a list of files that you should update:
+
+- [package.json](package.json#L3)
+- [package-lock.json](package-lock.json#L3)
+- [pyproject.toml](pyproject.toml#L7) (also [here](pyproject.toml#L84) for future `tbump` support)
+- [jupyterlab_genv/\_version.py](jupyterlab_genv/_version.py#L6)
+
+#### Create a Python Package
+
+Create a Python source package (`.tar.gz`) and the binary package (`.whl`) in the `dist/` directory using:
 
 ```bash
-# Server extension must be manually disabled in develop mode
-jupyter server extension disable jupyterlab_genv
-pip uninstall jupyterlab_genv
+python -m build
 ```
 
-In development mode, you will also need to remove the symlink created by `jupyter labextension develop`
-command. To find its location, you can run `jupyter labextension list` to figure out where the `labextensions`
-folder is located. Then you can remove the symlink named `jupyterlab_genv` within that folder.
+> `python setup.py sdist bdist_wheel` is deprecated and will not work for this package.
 
-### Packaging the extension
+Then, upload the package to [PyPI](https://pypi.org/project/jupyterlab-genv/) using:
 
-See [RELEASE](RELEASE.md)
+```bash
+twine upload dist/*
+```
