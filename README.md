@@ -1,13 +1,35 @@
-# jupyterlab_genv
+# GPU Environment Management for JupyterLab
 
 [![Github Actions Status](https://github.com/run-ai/jupyterlab_genv/workflows/Build/badge.svg)](https://github.com/run-ai/jupyterlab_genv/actions/workflows/build.yml)
-A JupyterLab extension.
 
-## Requirements
+A JupyterLab extension for managing GPU environments using [genv](https://github.com/run-ai/genv).
+
+The [_genv_](https://github.com/run-ai/genv) extension lets you interactively control, configure and monitor the GPU resources that your Jupyter Notebooks are using.
+
+![Overview](/resources/readme/overview.gif)
+
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [Installation](#installation)
+  - [Pip](#pip)
+  - [Install _genv_ Kernels](#install-genv-kernels)
+- [Usage](#usage)
+  - [Activate Your Environment](#activate-your-environment)
+  - [Attach GPUs to Your Environment](#attach-gpus-to-your-environment)
+  - [See Devices and Environments](#see-devices-and-environments)
+- [Development](#development)
+- [Publish](#publish)
+
+## Getting Started
+
+Read the _genv_ [reference](https://github.com/run-ai/genv#usage) to get started.
+
+## Installation
+
+### Requirements
 
 JupyterLab >= 3.0
-
-## Install
 
 ### Pip
 
@@ -16,6 +38,44 @@ You can install `jupyterlab_genv` from [PyPI](https://pypi.org/project/jupyterla
 ```bash
 pip install jupyterlab_genv
 ```
+
+### Install _genv_ Kernels
+
+After installing `jupyterlab_genv`, you will need to install _genv_ Jupyter kernels using:
+
+```bash
+python -m jupyterlab_genv install
+```
+
+## Usage
+
+### Activate Your Environment
+
+To activate your environment, you will have to select a _genv_ [kernel](#install-genv-kernels).
+
+Then, click the `GPUs` button on the Jupyter Notebook toolbar.
+A dialog should pop up where you can choose either to create a new environment for your Jupyter Notebook, or to use an existing one.
+
+Then, you can open a terminal activated in your environment.
+From there you will be able to configure the environment and attach devices.
+
+![Activate](/resources/readme/activate.gif)
+
+### Attach GPUs to Your Environment
+
+Configuring the environment and attaching devices is done from the _genv_ terminal.
+
+Make sure to restart your kernel after running the command in the terminal for it to take effect.
+
+![Attach](/resources/readme/attach.gif)
+
+### See Devices and Environments
+
+You can open the devices and environments widgets to see information.
+
+Open the command palette (`Command/Ctrl Shift C`) and type `GPUs`.
+
+![Commands](/resources/readme/commands.gif)
 
 ## Development
 
