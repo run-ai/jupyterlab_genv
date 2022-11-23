@@ -1,4 +1,5 @@
-# GPU Environment Management for JupyterLab
+# GPU Environment Management for JupyterLab  [![Join the community at https://join.slack.com/t/genvcommunity/shared_invite/zt-1i70tphdc-DmFgK5yr3HFI8Txx1yFXBw](https://img.shields.io/badge/Slack-genv-ff007f?logo=slack)](https://join.slack.com/t/genvcommunity/shared_invite/zt-1i70tphdc-DmFgK5yr3HFI8Txx1yFXBw) [![Join the chat at https://gitter.im/run-ai-genv/community](https://badges.gitter.im/run-ai-genv/community.svg)](https://gitter.im/run-ai-genv/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 [![Github Actions Status](https://github.com/run-ai/jupyterlab_genv/workflows/Build/badge.svg)](https://github.com/run-ai/jupyterlab_genv/actions/workflows/build.yml)
 
@@ -7,6 +8,19 @@ A JupyterLab extension for managing GPU environments using [genv](https://github
 The [_genv_](https://github.com/run-ai/genv) extension lets you interactively control, configure and monitor the GPU resources that your Jupyter Notebooks are using.
 
 ![Overview](/resources/readme/overview.gif)
+
+## 🏃🏻 Be an early runner in the genv community!
+
+[<img src="https://img.shields.io/badge/Slack-Join%20the%20community!-ff007f?style=for-the-badge&logo=slack&logoColor=ff007f" height="30" />](https://join.slack.com/t/genvcommunity/shared_invite/zt-1i70tphdc-DmFgK5yr3HFI8Txx1yFXBw)
+
+Join our Slack channel with the creators of *genv* and start building your models faster!
+
+- Installation and setup support as well as best practice tips and tricks directly for your use-case
+- Discuss possible features
+- Monthly coffee breaks to get to know the rest of the community
+
+Looking forward to seeing you as a part of the community!
+
 
 ## Table of Contents
 
