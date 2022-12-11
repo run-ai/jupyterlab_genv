@@ -55,6 +55,7 @@ async function openTerminal(eid: string, app: JupyterFrontEnd): Promise<void> {
           '# ',
           '# IMPORTANT: you will need to restart your Jupyter kernel after configuring the environment from the terminal.',
           '',
+          'eval "$(genv init -)"',
           `genv activate --id ${eid}`
         ]
           .map(line => line + '\n')
