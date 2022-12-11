@@ -24,6 +24,7 @@ Looking forward to seeing you as a part of the community!
 
 - [Getting Started](#getting-started)
 - [Installation](#installation)
+  - [Conda](#conda)
   - [Pip](#pip)
   - [Install _genv_ Kernels](#install-genv-kernels)
 - [Usage](#usage)
@@ -32,6 +33,8 @@ Looking forward to seeing you as a part of the community!
   - [See Devices and Environments](#see-devices-and-environments)
 - [Development](#development)
 - [Publish](#publish)
+  - [PyPI](#pypi)
+  - [Conda](#conda-1)
 
 ## Getting Started
 
@@ -43,9 +46,17 @@ Read the _genv_ [reference](https://github.com/run-ai/genv#usage) to get started
 
 JupyterLab >= 3.0
 
+### Conda
+
+If you are using [Conda](https://docs.conda.io/en/latest/), it is best to install the `jupyterlab_genv` [package](https://anaconda.org/conda-forge/jupyterlab_genv) from the channel [conda-forge](https://conda-forge.org/):
+
+```bash
+conda install -c conda-forge jupyterlab_genv
+```
+
 ### Pip
 
-You can install `jupyterlab_genv` from [PyPI](https://pypi.org/project/jupyterlab-genv/) using `pip`:
+Alternatively, you can install `jupyterlab_genv` from [PyPI](https://pypi.org/project/jupyterlab-genv/) using `pip`:
 
 ```bash
 pip install jupyterlab_genv
@@ -207,21 +218,13 @@ jupyter labextension list
 
 ## Publish
 
-The Python package is manually published to both [PyPI](https://pypi.org/project/jupyterlab-genv/) and [conda-forge](https://conda-forge.org/).
+The `jupyterlab_genv` package is manually published to both [PyPI](https://pypi.org/project/jupyterlab-genv/) and [conda-forge](https://anaconda.org/conda-forge/jupyterlab_genv).
 
 We do not publish the frontend part as an npm package because the Python package is a prebuilt server extension, and the frontend part alone is useless.
 
-Also make sure to update the [changelog](./CHANGELOG.md) ([here's](https://keepachangelog.com/en/1.0.0/#how) how).
+Also make sure to update the [changelog](./CHANGELOG.md) ([here's](https://keepachangelog.com/en/1.0.0/#how) how) and lint the project by running `npm run lint`.
 
-### PyPI
-
-#### Prerequisites
-
-```bash
-pip install build twine tbump
-```
-
-#### Bump Version
+### Bump Version
 
 The [cookiecutter template](https://github.com/jupyterlab/extension-cookiecutter-ts) uses `tbump` for bumping the version.
 However, for some reason this does not work at the moment, and we bump the version manually.
@@ -233,6 +236,16 @@ Here is a list of files that you should update:
 - [package-lock.json](package-lock.json#L3)
 - [pyproject.toml](pyproject.toml#L7) (also [here](pyproject.toml#L84) for future `tbump` support)
 - [jupyterlab_genv/\_version.py](jupyterlab_genv/_version.py#L6)
+
+After pushing these changes, create a release on [GitHub](https://github.com/run-ai/jupyterlab_genv/releases).
+
+### PyPI
+
+#### Prerequisites
+
+```bash
+pip install build twine tbump
+```
 
 #### Create a Python Package
 
@@ -249,3 +262,15 @@ Then, upload the package to [PyPI](https://pypi.org/project/jupyterlab-genv/) us
 ```bash
 twine upload dist/*
 ```
+
+> We upload to PyPI with the organizational user [runai](https://pypi.org/user/runai/)
+
+### Conda
+
+The Conda package is managed using its [feedstock](https://github.com/conda-forge/jupyterlab_genv-feedstock).
+
+After publishing to [PyPI](#pypi), update the [version](https://github.com/conda-forge/jupyterlab_genv-feedstock/blob/main/recipe/meta.yaml#L2) and [sha256](https://github.com/conda-forge/jupyterlab_genv-feedstock/blob/main/recipe/meta.yaml#L10) fields in the recipe `meta.yaml` file.
+
+A few minutes after pushing these changes, you should be able to see that the Conda [package](https://anaconda.org/conda-forge/jupyterlab_genv) version was updated.
+
+> You can get the SHA256 hash from [PyPI](https://pypi.org/project/jupyterlab-genv/#files)
