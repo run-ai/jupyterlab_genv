@@ -22,5 +22,5 @@ async def ps() -> Dict:
 
     return infos
 
-async def query(eid: str) -> List[int]:
-    return [int(index) for index in (await _exec(f'query --eid {eid}')).split(',') if len(index) > 0]
+async def find(eid: str) -> List[int]:
+    return [int(index) for index in (await _exec(f'find --eid {eid}')).split(',') if len(index) > 0]
