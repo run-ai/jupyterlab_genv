@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab_genv",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "A JupyterLab extension.",
   "keywords": [
     "jupyter",
