@@ -4,7 +4,7 @@ from typing import Dict, List
 from . import control
 
 async def _exec(command: str) -> str:
-    return await control.exec(f'exec envs {command}')
+    return await control.exec(f'envs {command}')
 
 async def activate(eid: str, kernel_id: str) -> None:
     await _exec(f'activate --eid {eid} --uid {os.getuid()} --kernel-id {kernel_id}')

@@ -28,6 +28,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
 ]
 dependencies = [
+    "genv",
     "jupyter_server>=1.6,<2"
 ]
 

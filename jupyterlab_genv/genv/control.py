@@ -1,9 +1,7 @@
 import asyncio
 
-from . import installation
-
 async def exec(command: str) -> str:
-    proc = await asyncio.create_subprocess_shell(f'{installation.root()}/bin/genv {command}',
+    proc = await asyncio.create_subprocess_shell(f'genv {command}',
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE)
 

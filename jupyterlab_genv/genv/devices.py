@@ -3,7 +3,7 @@ from typing import Dict, List
 from . import control
 
 async def _exec(command: str) -> str:
-    return await control.exec(f'exec devices {command}')
+    return await control.exec(f'devices {command}')
 
 async def ps() -> Dict:
     stdout = await _exec("ps --format csv --no-header --timestamp")
